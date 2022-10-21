@@ -10,7 +10,8 @@ namespace NetworkTester
 		private const string INVALID_CALL = "Invalid call";
 		private const string TCP_SERVER_CALL = "TCP Server <listening port> [buffer size] [write rate]";
 		private const string TCP_CLIENT_CALL = "TCP Client <ip address> <port> [buffer size]";
-		private const string UDP_CLIENT_CALL = "UDP Client <listening port> [buffer size]";
+		private const string UDP_SERVER_CALL = "UDP Server <ip address> <port> [buffer size] [write rate]";
+		private const string UDP_CLIENT_CALL = "UDP Client <listening port>";
 		private const string FOR_PROPER_USAGE = "For proper usage pass ?, -?, or /?";
 
 		public static void Main(string[] args)
@@ -65,10 +66,10 @@ namespace NetworkTester
 			Console.WriteLine();
 			Console.WriteLine("*********************************************************************************");
 			Console.WriteLine("    Usage: (<> required parameters, [] optional paramters)");
-			Console.WriteLine($"    NetworkTester {TCP_SERVER_CALL}");
-			Console.WriteLine($"    NetworkTester {TCP_CLIENT_CALL}");
-			Console.WriteLine("    NetworkTester UDP Server <ip address> <port> [buffer size] [write rate]");
-			Console.WriteLine("    NetworkTester UDP Client <listening port> [buffer size]");
+			Console.WriteLine($"    NetworkTester.exe {TCP_SERVER_CALL}");
+			Console.WriteLine($"    NetworkTester.exe {TCP_CLIENT_CALL}");
+			Console.WriteLine($"    NetworkTester.exe {UDP_SERVER_CALL}");
+			Console.WriteLine($"    NetworkTester.exe {UDP_CLIENT_CALL}");
 			Console.WriteLine("*********************************************************************************");
 			Console.WriteLine();
 		}
@@ -145,7 +146,7 @@ namespace NetworkTester
 						logger.Log($"TCP Client invalid port {args[3]}. {TCP_CLIENT_CALL}");
 						return;
 					}
-					int bufferSize = Data.DEFAULT_BUFFER_SIZE;
+					int bufferSize = DEFAULT_BUFFER_SIZE;
 					if (args.Length == 5)
 					{ // Buffer Size
 						if (string.IsNullOrWhiteSpace(args[4]) || !int.TryParse(args[4], out bufferSize) || bufferSize < 1)
@@ -168,7 +169,7 @@ namespace NetworkTester
 						logger.Log($"TCP Server invalid listening port {args[2]}. {TCP_SERVER_CALL}");
 						return;
 					}
-					bufferSize = Data.DEFAULT_BUFFER_SIZE;
+					bufferSize = DEFAULT_BUFFER_SIZE;
 					if (args.Length >= 4)
 					{ // Buffer Size
 						if (string.IsNullOrWhiteSpace(args[3]) || !int.TryParse(args[3], out bufferSize) || bufferSize < 1)
@@ -177,7 +178,7 @@ namespace NetworkTester
 							return;
 						}
 					}
-					byte writeRate = Data.DEFAULT_WRITE_RATE;
+					byte writeRate = DEFAULT_WRITE_RATE;
 					if (args.Length == 5)
 					{ // Write Rate
 						if (string.IsNullOrWhiteSpace(args[4]) || !byte.TryParse(args[4], out writeRate) || writeRate < 1)
@@ -197,19 +198,58 @@ namespace NetworkTester
 
 		private static void StartUdpManager(string[] args, Application application, ILogger logger, CancellationToken cancellationToken)
 		{
-			Console.WriteLine("    NetworkTester UDP Server <ip address> <port> [buffer size] [write rate]");
-
 			switch (application)
 			{
 				case Application.Client:
 					if (args.Length < 3)
-					{ // NetworkTester UDP Client <listening port> [buffer size]
+					{ // UDP Client <listening port>
 						logger.Log($"{INVALID_CALL}. {UDP_CLIENT_CALL}");
 						return;
 					}
-					//if (string.IsNullOrWhiteSpace(args[2]) || )
+					if (string.IsNullOrWhiteSpace(args[2]) || !ushort.TryParse(args[2], out ushort listeningPort))
+					{ // Listening Port
+						logger.Log($"UDP Client invalid port {args[2]}. {UDP_CLIENT_CALL}");
+						return;
+					}
+
+					_ = new UdpManager(listeningPort, logger, cancellationToken);
 					break;
 				case Application.Server:
+					if (args.Length < 4)
+					{ // UDP Server <ip address> <port> [buffer size] [write rate]
+						logger.Log($"{INVALID_CALL}. {UDP_SERVER_CALL}");
+						return;
+					}
+					if (string.IsNullOrWhiteSpace(args[2]) || !IPAddress.TryParse(args[2], out IPAddress? ipAddress))
+					{ // IP Address
+						logger.Log($"UDP Server invalid IP address {args[2]}. {UDP_SERVER_CALL}");
+						return;
+					}
+					if (string.IsNullOrWhiteSpace(args[3]) || !ushort.TryParse(args[3], out ushort broadcastPort))
+					{ // Port
+						logger.Log($"UDP Server invalid port {args[3]}. {UDP_SERVER_CALL}");
+						return;
+					}
+					int bufferSize = DEFAULT_BUFFER_SIZE;
+					if (args.Length > 4)
+					{ // Buffer Size
+						if (string.IsNullOrWhiteSpace(args[4]) || !int.TryParse(args[4], out bufferSize) || bufferSize < 1 || bufferSize > MAX_UDP_BUFFER_SIZE)
+						{
+							logger.Log($"UDP Server invalid buffer size {args[4]}. Must be 1-{MAX_UDP_BUFFER_SIZE}. {UDP_SERVER_CALL}");
+							return;
+						}
+					}
+					byte writeRate = DEFAULT_WRITE_RATE;
+					if (args.Length == 6)
+					{ // Write Rate
+						if (string.IsNullOrWhiteSpace(args[5]) || !byte.TryParse(args[5], out writeRate) || writeRate < 1)
+						{
+							logger.Log($"UDP Server invalid write rate {args[5]}. {UDP_SERVER_CALL}");
+							return;
+						}
+					}
+
+					_ = new UdpManager(ipAddress, broadcastPort, logger, cancellationToken, bufferSize, writeRate);
 					break;
 				default:
 					logger.Log($"Invalid UDP application: {application}");

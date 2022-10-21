@@ -28,10 +28,10 @@
 		public const ushort DEFAULT_BUFFER_SIZE = 1024;
 
 		/// <summary>
-		/// Default size of UDP buffer.
+		/// Maximum size of UDP buffer.
 		/// </summary>
-		/// <remarks>UDP buffer size is max unsigned short (65535) - IP Header (20) - UDP Header (8).</remarks>
-		public const ushort DEFAULT_UDP_BUFFER_SIZE = 65507;
+		/// <remarks>Determined by: max unsigned short (65535) - IP Header (20) - UDP Header (8).</remarks>
+		public const ushort MAX_UDP_BUFFER_SIZE = 65507;
 
 		/// <summary>
 		/// Default rate in hertz messages are written.

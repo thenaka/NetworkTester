@@ -13,10 +13,10 @@ namespace NetworkTester.Manager
 		/// <param name="broadcastPort">Port to broadcast data to.</param>
 		/// <param name="logger">Logger to write log messages.</param>
 		/// <param name="cancellationToken">Token to cancel operation.</param>
-		/// <param name="bufferSize">Optional. Size of datagrams to broadcast. Default is <see cref="Data.DEFAULT_UDP_BUFFER_SIZE"/>.</param>
+		/// <param name="bufferSize">Optional. Size of datagrams to broadcast. Default is <see cref="Data.DEFAULT_BUFFER_SIZE"/>.</param>
 		/// <param name="writeRate">Optional. The rate in hertz of writing. Default is <see cref="Data.DEFAULT_WRITE_RATE"/></param>
 		/// <exception cref="ArgumentException"><paramref name="bufferSize"/> is less than one.-or-<paramref name="writeRate"/> is zero.</exception>
-		public UdpManager(IPAddress broadcastIpAddress, ushort broadcastPort, ILogger logger, CancellationToken cancellationToken, int bufferSize = Data.DEFAULT_UDP_BUFFER_SIZE, byte writeRate = Data.DEFAULT_WRITE_RATE)
+		public UdpManager(IPAddress broadcastIpAddress, ushort broadcastPort, ILogger logger, CancellationToken cancellationToken, int bufferSize = Data.DEFAULT_BUFFER_SIZE, byte writeRate = Data.DEFAULT_WRITE_RATE)
 		{
 			if (bufferSize < 1)
 			{
